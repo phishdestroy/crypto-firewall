@@ -1,0 +1,12 @@
+# Crypto Firewall (getsession-org)
+#
+# Homepage: https://github.com/chartingshow/crypto-firewall
+# Contribute: https://github.com/chartingshow/crypto-firewall/issues
+# License: GPL-3.0 license
+#
+# Last modified: 13 May 2026
+#
+
+# Block getsession-org sub-domains
+0.0.0.0 filev2.getsession.org
+0.0.0.0 seed1.getsession.org

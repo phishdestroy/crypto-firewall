@@ -10,3 +10,4 @@
 
 ! Block hostwindsdns-com sub-domains ------------------------------------------------------
 ||hwsrv-1091010.hostwindsdns.com^
+||hwsrv-798836.hostwindsdns.com^

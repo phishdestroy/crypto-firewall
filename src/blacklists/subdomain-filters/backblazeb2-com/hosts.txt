@@ -1,0 +1,12 @@
+# Crypto Firewall (backblazeb2-com)
+#
+# Homepage: https://github.com/chartingshow/crypto-firewall
+# Contribute: https://github.com/chartingshow/crypto-firewall/issues
+# License: GPL-3.0 license
+#
+# Last modified: 30 June 2026
+#
+
+# Block backblazeb2-com sub-domains
+0.0.0.0 caiwuascw.s3.us-east-005.backblazeb2.com
+0.0.0.0 facaia.s3.us-east-005.backblazeb2.com

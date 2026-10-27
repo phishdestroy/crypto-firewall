@@ -5,7 +5,8 @@
 # Contribute: https://github.com/chartingshow/crypto-firewall/issues
 # License: GPL-3.0 license
 #
-# Last modified: 4 June 2025
+# Last modified: 6 October 2026
 #
 
 0x2a4Ca7B6D5FEA094e02f152D712bFD49de6D3410
+X-avax1h9qxee0820ezfkgeeuc02gkc0c77xrypx8z6g2

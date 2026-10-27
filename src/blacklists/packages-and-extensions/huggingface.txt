@@ -1,0 +1,17 @@
+# Crypto Firewall
+# Blocking Web Browser Crypto Malware and Phishing Websites
+#
+# Homepage: https://github.com/chartingshow/crypto-firewall
+# Contribute: https://github.com/chartingshow/crypto-firewall/issues
+# License: GPL-3.0 license
+#
+# Last modified: 30 June 2026
+#
+
+anthfu/Bonsai-8B-gguf
+anthfu/DeepSeek-V4-Pro
+anthfu/Qwen3.6-35B-A3B-APEX-GGUF
+anthfu/Qwen3.6-35B-A3B-Claude-4.6-Opus-Reasoning-Distilled-GGUF
+anthfu/Qwopus-GLM-18B-Merged-GGUF
+anthfu/supergemma4-26b-uncensored-gguf-v2
+Open-OSS/privacy-filter

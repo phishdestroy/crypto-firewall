@@ -1,0 +1,8 @@
+{
+  "checked_at": "2026-10-27T11:30:32.475626+00:00",
+  "upstream": "chartingshow/crypto-firewall",
+  "upstream_branch": "master",
+  "upstream_commit": "fce2dd55bb73722d4111f97a42c73bc150163ded",
+  "version": 1,
+  "workflow_policy": "preserve fork workflows; never import upstream workflows"
+}

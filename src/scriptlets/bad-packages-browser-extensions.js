@@ -5,66 +5,116 @@
  *              malicious cryptocurrency-related packages, extensions, and projects.
  *              Checks URLs against curated blacklists (npm, PyPI, Chrome Store, etc.)
  *              and alerts users on detection.
- * @version 2.0.8
+ * @version 2.3.1
  * @copyright (c) The Charting Show
- * @license GPL-3.0 license - (View LICENSE file for details)
+ * @license GPL-3.0 license
  *
  * Intended for Brave Browser's custom scriptlets feature.
- * Original Authors: Charting Show Team
  */
 
 ;(async function () {
-  // JSON/TXT blacklist endpoints
+  /* ------------------------------------------------------------------
+   * Blacklist sources
+   * ------------------------------------------------------------------ */
   const blacklistURLs = {
     'addons.mozilla.org':
       'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/firefox-extensions.txt',
+
+    'addons.mozilla.org:ids':
+      'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/firefox-extensions-ids.txt',
+
+    'addons.opera.com':
+      'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/opera-extensions.txt',
+
     'apps.apple.com':
       'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/apple-app-store.txt',
+
     'chrome.extension':
       'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/chrome-extension-ids.txt',
+
     'chrome.google.com/webstore':
       'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/chrome-extensions.txt',
+
+    'clawhub.ai':
+      'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/openclaw.txt',
+
+    'console.cloud.google.com':
+      'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/google-cloud-projects.txt',
+
+    'crates.io':
+      'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/rust-packages.txt',
+
+    'edge.extension':
+      'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/edge-extension-ids.txt',
+
     'facebook.com':
       'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/facebook-ids.txt',
+
     'firebaseio.com':
       'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/firebase-projects.txt',
+
+    'huggingface.co':
+      'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/huggingface.txt',
+
     'marketplace.visualstudio.com':
       'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/vscode-extensions.txt',
+
     'npmjs.com':
       'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/npm-packages.txt',
+
     'open-vsx.org':
       'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/vsxcode-extensions.txt',
+
+    'packagist.org':
+      'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/php-packages.txt',
+
     'play.google.com':
       'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/google-play.txt',
+
     'pypi.org':
       'https://raw.githubusercontent.com/chartingshow/crypto-firewall/master/src/blacklists/packages-and-extensions/pypi-packages.txt',
   }
 
-  // Cache for fetched blacklists
+  /* ------------------------------------------------------------------
+   * URL parsing (ONCE – performance optimised)
+   * ------------------------------------------------------------------ */
+  let parsedURL
+  try {
+    parsedURL = new URL(window.location.href)
+  } catch {
+    return
+  }
+
+  const CURRENT = {
+    href: parsedURL.href.toLowerCase(),
+    host: parsedURL.hostname.toLowerCase(),
+    path: parsedURL.pathname.toLowerCase(),
+  }
+
+  /* ------------------------------------------------------------------
+   * Blacklist cache
+   * ------------------------------------------------------------------ */
   const blacklistCache = new Map()
 
-  // Enhanced fetch function with caching and sanitization
   async function fetchBlacklist(url) {
-    const normalized = url.toLowerCase()
-    if (blacklistCache.has(normalized)) return blacklistCache.get(normalized)
+    const key = url.toLowerCase()
+    if (blacklistCache.has(key)) return blacklistCache.get(key)
 
     try {
-      const response = await fetch(url, {cache: 'no-cache'})
+      const response = await fetch(url, { cache: 'no-cache' })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
 
       let data
-      if (url.endsWith('.json')) {
-        data = await response.json()
-      } else if (url.endsWith('.txt')) {
+      if (url.endsWith('.txt')) {
         const text = await response.text()
         data = text
           .split(/\r?\n/)
-          .map((line) => line.trim())
+          .map((l) => l.trim())
           .filter(
-            (line) =>
-              line &&
-              !line.startsWith('#') &&
-              !/<[a-z][\s\S]*>/i.test(line) // strip HTML
+            (l) =>
+              l &&
+              !l.startsWith('#') &&
+              !/<[a-z][\s\S]*>/i.test(l)
           )
           .map((pkg) => ({
             package: pkg,
@@ -77,125 +127,253 @@
         data = []
       }
 
-      // limit cache to 10 entries
       if (blacklistCache.size > 10) blacklistCache.clear()
-      blacklistCache.set(normalized, data)
+      blacklistCache.set(key, data)
       return data
-    } catch (error) {
-      console.error(`Failed to load blacklist from ${url}:`, error)
+    } catch (err) {
+      console.error(`Failed to load blacklist from ${url}`, err)
       return []
     }
   }
 
-  // Check current URL against a blacklist
-  async function checkURLAgainstBlacklist(hostname) {
-    const blacklistUrl = blacklistURLs[hostname]
-    if (!blacklistUrl) return
+  /* ------------------------------------------------------------------
+   * URL blacklist matching (CodeQL-safe)
+   * ------------------------------------------------------------------ */
+  async function checkURLAgainstBlacklist(domainKey) {
+    const listURL = blacklistURLs[domainKey]
+    if (!listURL) return
 
-    const blacklist = await fetchBlacklist(blacklistUrl)
-    const currentURL = window.location.href.toLowerCase()
+    const blacklist = await fetchBlacklist(listURL)
+    if (!blacklist.length) return
 
     for (const threat of blacklist) {
-      if (currentURL.includes(threat.package.toLowerCase())) {
-        showEnhancedAlert(threat, hostname)
+      if (!threat?.package) continue
+
+      const pkg = threat.package.toLowerCase()
+      let matched = false
+
+      if (domainKey === 'huggingface.co') {
+        // Hugging Face uses /username/model-name or /username/model-name/tree/branch etc.
+        const hfMatch = CURRENT.path.match(/^\/([^/]+\/[^/]+)/)
+        if (hfMatch) {
+          const repoPath = hfMatch[1].toLowerCase()
+          matched = repoPath === pkg || CURRENT.path.includes('/' + pkg + '/')
+        }
+      } 
+      else if (/^[a-z0-9]{32}$/.test(pkg)) {
+        // Chrome/Edge extension IDs
+        matched =
+          (
+            CURRENT.host === 'chrome.google.com' ||
+            CURRENT.host === 'microsoftedge.microsoft.com' ||
+            CURRENT.host === 'addons.opera.com'
+          ) &&
+          CURRENT.path.includes('/detail/') &&
+          CURRENT.path.includes(pkg)
+      } 
+      else if (pkg.startsWith('{') && pkg.endsWith('}')) {
+        // Firefox UUIDs
+        matched =
+          CURRENT.host === 'addons.mozilla.org' &&
+          CURRENT.path.includes(pkg)
+      } 
+      else {
+        const domainMatches =
+          domainKey === 'clawhub.ai'
+            ? (
+                CURRENT.host === 'clawhub.ai' ||
+                CURRENT.host === 'hub.openclaw.ai'
+              )
+            : CURRENT.host === domainKey
+
+        if (!domainMatches) continue
+
+        switch (domainKey) {
+          case 'clawhub.ai': {
+            // ClawHub skill URLs:
+            // /owner/skills/skill-name
+            // /skills/skill-name
+            // /s/skill-name
+
+            const canonicalMatch = CURRENT.path.match(
+              /^\/[^/]+\/skills\/([^/]+)/
+            )
+
+            const shortMatch =
+              CURRENT.path.match(/^\/skills\/([^/]+)/)
+
+            const legacyMatch =
+              CURRENT.path.match(/^\/s\/([^/]+)/)
+
+            const skillSlug = (
+              canonicalMatch?.[1] ||
+              shortMatch?.[1] ||
+              legacyMatch?.[1] ||
+              ''
+            ).toLowerCase()
+
+            matched = skillSlug === pkg
+            break
+          }
+
+          case 'crates.io': {
+            const match = CURRENT.path.match(/^\/crates\/([^/]+)/)
+            matched = match?.[1]?.toLowerCase() === pkg
+            break
+          }
+
+          case 'packagist.org': {
+            const match = CURRENT.path.match(/^\/packages\/([^/]+\/[^/]+)/)
+            matched = match?.[1]?.toLowerCase() === pkg
+            break
+          }
+
+          case 'pypi.org': {
+            const match = CURRENT.path.match(/^\/project\/([^/]+)/)
+            matched = match?.[1]?.toLowerCase() === pkg
+            break
+          }
+
+          case 'npmjs.com': {
+            const match = CURRENT.path.match(/^\/package\/(@?[^/]+(?:\/[^/]+)?)/)
+            matched = match?.[1]?.toLowerCase() === pkg
+            break
+          }
+
+          case 'console.cloud.google.com': {
+            matched = parsedURL.searchParams.get('project')?.toLowerCase() === pkg
+            break
+          }
+
+          default:
+            matched = CURRENT.path.includes(pkg)
+        }
+      }
+
+      if (matched) {
+        showEnhancedAlert(threat)
         logThreatDetection(threat)
         break
       }
     }
   }
 
-  // Show an inline security alert (deduplicated)
-  function showEnhancedAlert(threat, hostname) {
-    const existing = document.querySelector('#crypto-firewall-alert')
-    if (existing) existing.remove()
+  /* ------------------------------------------------------------------
+   * Alert UI
+   * ------------------------------------------------------------------ */
+  function showEnhancedAlert(threat) {
+    document
+      .querySelector('#crypto-firewall-alert')
+      ?.remove()
 
-    const alertHTML = `
-    <div id="crypto-firewall-alert"
-         style="position:fixed;top:20px;right:20px;z-index:9999;
-                background:#ff4444;color:white;padding:20px;
-                border-radius:8px;max-width:400px;
-                box-shadow:0 4px 8px rgba(0,0,0,0.3)">
-      <h3 style="margin-top:0">SECURITY ALERT</h3>
-      <p><strong>Malicious ${threat.type} detected:</strong> ${threat.package}</p>
-      <p><strong>Severity:</strong> ${threat.severity.toUpperCase()}</p>
-      <p><strong>Description:</strong> ${threat.description}</p>
-      ${
-        threat.remediation
-          ? `<p><strong>Action Required:</strong> ${threat.remediation}</p>`
-          : ''
-      }
-      <button onclick="this.parentNode.remove()"
-              style="background:white;color:#ff4444;border:none;
-                     padding:8px 16px;border-radius:4px;cursor:pointer">
-        Acknowledge
-      </button>
-    </div>`
-    document.body.insertAdjacentHTML('beforeend', alertHTML)
+    const html = `
+      <div id="crypto-firewall-alert"
+           style="position:fixed;top:20px;right:20px;z-index:9999;
+                  background:#ff4444;color:#fff;padding:20px;
+                  border-radius:8px;max-width:400px;
+                  box-shadow:0 4px 8px rgba(0,0,0,.3)">
+        <h3 style="margin-top:0">SECURITY ALERT</h3>
+        <p><strong>Detected:</strong> ${threat.package}</p>
+        <p><strong>Severity:</strong> ${String(threat.severity).toUpperCase()}</p>
+        ${threat.description ? `<p>${threat.description}</p>` : ''}
+        ${threat.remediation ? `<p><strong>Action:</strong> ${threat.remediation}</p>` : ''}
+        <button onclick="this.parentNode.remove()"
+                style="margin-top:10px;background:#fff;color:#ff4444;
+                       border:none;padding:8px 16px;border-radius:4px;
+                       cursor:pointer">
+          Acknowledge
+        </button>
+      </div>
+    `
+    document.body.insertAdjacentHTML('beforeend', html)
   }
 
-  // Log threat detection to console or API endpoint
   function logThreatDetection(threat) {
-    const logEntry = {
+    console.warn('Threat detected', {
       timestamp: new Date().toISOString(),
       threat: threat.package,
       type: threat.type,
       severity: threat.severity,
-      url: window.location.href,
+      url: CURRENT.href,
       userAgent: navigator.userAgent,
-    }
-    console.warn('Threat detected:', logEntry)
-    // Optional: send log to remote endpoint
-    // fetch('/api/threat-log', { method: 'POST', body: JSON.stringify(logEntry) })
+    })
   }
 
-  // Domain-specific handlers (with subdomain support)
+  /* ------------------------------------------------------------------
+   * Domain routing
+   * ------------------------------------------------------------------ */
   function checkCurrentDomain() {
-    const {hostname, href} = window.location
-
-    const findDomainKey = (host) =>
-      Object.keys(blacklistURLs).find(
-        (key) => host === key || host.endsWith(`.${key}`)
-      )
-
-    const domainKey = findDomainKey(hostname)
+    const host = CURRENT.host
 
     const domainHandlers = {
-      'addons.mozilla.org': () => checkURLAgainstBlacklist('addons.mozilla.org'),
-      'apps.apple.com': () => checkURLAgainstBlacklist('apps.apple.com'),
-      'chrome.google.com': () =>
-        href.includes('/webstore')
-          ? checkURLAgainstBlacklist('chrome.google.com/webstore')
-          : checkURLAgainstBlacklist('chrome.extension'),
-      'facebook.com': () => checkURLAgainstBlacklist('facebook.com'),
-      'firebaseio.com': () => checkURLAgainstBlacklist('firebaseio.com'),
+      'addons.mozilla.org': () => {
+        checkURLAgainstBlacklist('addons.mozilla.org')
+        checkURLAgainstBlacklist('addons.mozilla.org:ids')
+      },
+
+      'addons.opera.com': () =>
+        checkURLAgainstBlacklist('addons.opera.com'),
+
+      'apps.apple.com': () =>
+        checkURLAgainstBlacklist('apps.apple.com'),
+
+      'clawhub.ai': () =>
+        checkURLAgainstBlacklist('clawhub.ai'),
+
+      'hub.openclaw.ai': () =>
+        checkURLAgainstBlacklist('clawhub.ai'),
+
+      'console.cloud.google.com': () =>
+        checkURLAgainstBlacklist('console.cloud.google.com'),
+
+      'crates.io': () =>
+        checkURLAgainstBlacklist('crates.io'),
+
+      'facebook.com': () =>
+        checkURLAgainstBlacklist('facebook.com'),
+
+      'huggingface.co': () =>
+        checkURLAgainstBlacklist('huggingface.co'),
+
       'marketplace.visualstudio.com': () =>
         checkURLAgainstBlacklist('marketplace.visualstudio.com'),
-      'npmjs.com': () => checkURLAgainstBlacklist('npmjs.com'),
-      'open-vsx.org': () => checkURLAgainstBlacklist('open-vsx.org'),
-      'pypi.org': () => checkURLAgainstBlacklist('pypi.org'),
-      'play.google.com': () => checkURLAgainstBlacklist('play.google.com'),
-      default: () => {
-        if (hostname.endsWith('.firebaseio.com')) {
-          checkURLAgainstBlacklist('firebaseio.com')
-        } else if (domainKey) {
-          checkURLAgainstBlacklist(domainKey)
-        }
-      },
+
+      'npmjs.com': () =>
+        checkURLAgainstBlacklist('npmjs.com'),
+
+      'open-vsx.org': () =>
+        checkURLAgainstBlacklist('open-vsx.org'),
+
+      'packagist.org': () =>
+        checkURLAgainstBlacklist('packagist.org'),
+
+      'play.google.com': () =>
+        checkURLAgainstBlacklist('play.google.com'),
+
+      'pypi.org': () =>
+        checkURLAgainstBlacklist('pypi.org'),
     }
 
-    ;(domainHandlers[domainKey] || domainHandlers.default)()
+    if (host.endsWith('.firebaseio.com')) {
+      checkURLAgainstBlacklist('firebaseio.com')
+      return
+    }
+
+    domainHandlers[host]?.()
   }
 
-  // Debounced initialization (prevents duplicate runs)
-  let checked = false
-  function safeCheck() {
-    if (!checked) {
-      checked = true
+  /* ------------------------------------------------------------------
+   * Init (deduplicated)
+   * ------------------------------------------------------------------ */
+  let ran = false
+  const runOnce = () => {
+    if (!ran) {
+      ran = true
       checkCurrentDomain()
     }
   }
 
-  document.addEventListener('DOMContentLoaded', safeCheck)
-  window.addEventListener('load', safeCheck)
-  if (document.readyState === 'complete') safeCheck()
+  document.addEventListener('DOMContentLoaded', runOnce)
+  window.addEventListener('load', runOnce)
+  if (document.readyState === 'complete') runOnce()
 })()

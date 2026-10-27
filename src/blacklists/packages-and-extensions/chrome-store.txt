@@ -5,9 +5,11 @@
 # Contribute: https://github.com/chartingshow/crypto-firewall/issues
 # License: GPL-3.0 license
 #
-# Last modified: 16 July 2025
+# Last modified: 4 April 2026
 #
 
+ad-stop
+cache-fast-site-loader
 co.mona.android
 com.alemankarima.dating
 com.arkea.android.application.cmb
@@ -75,6 +77,9 @@ com.mingle.EuropianMingle
 com.mobillium.papara
 com.mootwin.natixis
 com.musulmankarima.dating
+com.nos.follow.car.plus
+com.nrb.phayrucq
+com.nx.app
 com.ocito.cdn.activity.banquelaydernier
 com.ocito.cdn.activity.creditdunord
 com.okinc.okcoin.intl
@@ -117,6 +122,8 @@ com.ykb.android	com.ziraat.ziraatmobil
 com.yourchristiandate
 com.zddapps.totke
 com.zoosk.zoosk
+crxmouse-gesture
+dark-reader-for-ff
 es.bancosantander.apps
 es.caixagalicia.activamovil
 es.caixaontinyent.caixaontinyentapp
@@ -133,7 +140,14 @@ fr.banquepopulaire.cyberplus
 fr.bred.fr
 fr.creditagricole.androidapp
 fr.lcl.android.customerarea
+free-vpn-forever
+freemp3downloader
+google-traductor-esp
+google-translate-pro-extension
+google-translate-right-clicks
 gqcvctl.msthh.swxgkyv
+hobfjp.anrxf.cucm
+i-like-weather
 io.metamask
 it.bcc.iccrea.mycartabcc
 it.bnl.apps.banking
@@ -143,6 +157,7 @@ it.creval.bancaperta
 it.icbpi.mobile
 it.nogood.container
 it.popso.SCRIGNOapp
+libretv-watch-free-videos
 mobi.societegenerale.mobile.lappli
 net.bnpparibas.mescomptes
 net.inverline.bancosabadell.officelocator.android
@@ -153,9 +168,26 @@ physics.physics.physics
 plnfexcq.fehlwuggm.kyxvb
 posteitaliane.posteapp.appbpol
 posteitaliane.posteapp.apppostepay
+pt.nos.alive
+pt.nos.assistencia.remota
+pt.nos.btv
+pt.nos.cinemas
+pt.nos.communicator
+pt.nos.follow.mydriver
+pt.nos.iris.online
+pt.nos.mobi
+pt.nos.selfcare
+pt.nos.sportingtv
+pt.nos.wtfbb
 quizzical.washbowl.calamity
+right-click-google-translate
 ru.fotostrana.sweetmeet
+screenshot-saved-easy
 tr.com.sekerbilisim.mbank
 tr.gov.turkiye.edevlet.kapisi
+translator-gbbd
+weather-best-forecast
+world-wide-vpn
 www.ingdirect.nativeframe
 xkeqoi.iochvm.vmyab
+谷歌-翻译

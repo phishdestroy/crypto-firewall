@@ -1,0 +1,12 @@
+# Crypto Firewall (gcdn-co)
+#
+# Homepage: https://github.com/chartingshow/crypto-firewall
+# Contribute: https://github.com/chartingshow/crypto-firewall/issues
+# License: GPL-3.0 license
+#
+# Last modified: 30 June 2026
+#
+
+# Block gcdn-co sub-domains
+0.0.0.0 cl-9168a3cc.gcdn.co
+0.0.0.0 cl-glcb907925.gcdn.co

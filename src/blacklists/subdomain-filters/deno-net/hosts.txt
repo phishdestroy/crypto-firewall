@@ -1,0 +1,11 @@
+# Crypto Firewall (deno-net)
+#
+# Homepage: https://github.com/chartingshow/crypto-firewall
+# Contribute: https://github.com/chartingshow/crypto-firewall/issues
+# License: GPL-3.0 license
+#
+# Last modified: 6 October 2026
+#
+
+# Block deno-net sub-domains
+0.0.0.0 proxy.thebeholder.deno.net

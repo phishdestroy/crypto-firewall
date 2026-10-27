@@ -11,3 +11,4 @@
 ! Block appsflyer-com sub-domains ------------------------------------------------------
 ||conversions.appsflyer.com^
 ||inapps.appsflyer.com^
+||websdk.appsflyer.com^

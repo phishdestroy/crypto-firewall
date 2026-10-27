@@ -7,8 +7,7 @@
 # Contribute: https://github.com/chartingshow/crypto-firewall/issues
 # License: GPL-3.0 license
 #
-# Last modified: 27 September 2025
-#
+# Last modified: 30 June 2026
 
 # Domains
 2waky.com
@@ -85,6 +84,7 @@ gotdns.ch
 hacked.jp
 her.name
 here-for-more.info
+hichina.com
 home-webserver.de
 homelinux.net
 hopto.org
@@ -94,6 +94,7 @@ infinityfreeapp.com
 ipq.co
 is-a-doctor.com
 is-by.us
+it.com
 ix.tc
 jetos.com
 jumpingcrab.com
@@ -101,6 +102,7 @@ keenetic.link
 keenetic.pro
 kozow.com
 kro.kr
+lhr.life
 linkpc.net
 loca.lt
 loseyourip.com

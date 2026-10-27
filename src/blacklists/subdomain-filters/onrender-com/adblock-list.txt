@@ -1,0 +1,26 @@
+[Adblock Plus 3.0]
+! Title: Crypto Firewall (onrender-com)
+! Expires: 7 days (update frequency)
+! Last modified: [Adblock Plus 3.0]
+! Homepage: https://github.com/chartingshow/crypto-firewall/
+! Contribute: https://github.com/chartingshow/crypto-firewall/issues
+! License: GPL-3.0 license
+! Description: Blocking Web Browser Crypto Malware and Phishing Websites
+!-------------------------------------------------------------------------------
+
+! Block onrender-com sub-domains --------------------------------------------------
+||anthropicadsback.onrender.com^
+||backend-j02u.onrender.com^
+||backend-tg0j.onrender.com^
+||chatgptadsback.onrender.com^
+||geminiback-5j1n.onrender.com^
+||logkit.onrender.com^
+||mango-back.onrender.com^
+||manusback-bahk.onrender.com^
+||manusback.onrender.com^
+||mbackend-mdye.onrender.com^
+||nikear.onrender.com^
+||semrushback.onrender.com^
+||syncgadsback.onrender.com^
+||syncgoogleadsback.onrender.com^
+||zero39172-391920.onrender.com^
